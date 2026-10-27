@@ -27,12 +27,25 @@ public class MainActivity extends Activity {
         "var style = document.createElement('style');" +
         "style.id = 'instamessages-cleaner';" +
         "style.innerHTML = `" +
+        "  /* Hide Reels, Explore, Feed navigation */" +
         "  a[href*=\\\"/reels/\\\"]," +
         "  a[href*=\\\"/explore/\\\"]," +
         "  a[href*=\\\"threads.net\\\"]," +
         "  div[role=\\\"navigation\\\"] a[href=\\\"/reels/\\\"]," +
         "  div[role=\\\"navigation\\\"] a[href=\\\"/explore/\\\"]," +
         "  div[role=\\\"navigation\\\"] a[href=\\\"/\\\"]," +
+        "  /* Hide Top-Left Back Button */" +
+        "  header a[href=\\\"/\\\"]," +
+        "  header a:has(svg[aria-label=\\\"Back\\\"])," +
+        "  header a:has(svg[aria-label=\\\"Chevron left\\\"])," +
+        "  header div[role=\\\"button\\\"]:has(svg[aria-label=\\\"Back\\\"])," +
+        "  header svg[aria-label=\\\"Back\\\"]," +
+        "  header svg[aria-label=\\\"Chevron left\\\"]," +
+        "  /* Hide Notes Tray */" +
+        "  div[aria-label*=\\\"Note\\\"]," +
+        "  div[aria-label*=\\\"note\\\"]," +
+        "  div[style*=\\\"overflow-x\\\"]," +
+        "  div[style*=\\\"scroll-snap-type\\\"]," +
         "  div[role=\\\"menu\\\"]:has(ul)," +
         "  header div:has(canvas) {" +
         "    display: none !important;" +
@@ -50,7 +63,19 @@ public class MainActivity extends Activity {
         "  if (p === '/' || p.startsWith('/reels') || p.startsWith('/explore')) {" +
         "    window.location.replace('https://www.instagram.com/direct/inbox/');" +
         "  }" +
-        "}, 800);";
+        "  /* Remove top-left back button and notes tray */" +
+        "  if (p.includes('/direct/inbox')) {" +
+        "    var backEls = document.querySelectorAll('header a[href=\"/\"], header svg[aria-label=\"Back\"], header svg[aria-label=\"Chevron left\"]');" +
+        "    backEls.forEach(function(el) {" +
+        "      var target = el.closest('header a') || el.closest('div[role=\"button\"]') || el;" +
+        "      if (target) target.style.setProperty('display', 'none', 'important');" +
+        "    });" +
+        "    var noteTrays = document.querySelectorAll('div[style*=\"overflow-x\"], div[aria-label*=\"Note\"], div[aria-label*=\"note\"]');" +
+        "    noteTrays.forEach(function(tray) {" +
+        "      tray.style.setProperty('display', 'none', 'important');" +
+        "    });" +
+        "  }" +
+        "}, 400);";
 
     @Override
     @SuppressLint("SetJavaScriptEnabled")
