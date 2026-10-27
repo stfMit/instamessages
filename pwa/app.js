@@ -1,3 +1,13 @@
+// Auto-launch Direct Inbox if opened as an installed PWA from Home Screen
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+const urlParams = new URLSearchParams(window.location.search);
+const isFromPwa = urlParams.get('utm_source') === 'pwa' || isStandalone;
+
+if (isFromPwa) {
+  // Directly navigate to Instagram DM inbox
+  window.location.replace('https://www.instagram.com/direct/inbox/');
+}
+
 // Register Service Worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
