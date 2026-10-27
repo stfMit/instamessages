@@ -1,0 +1,59 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Build APK with Gradle
+        working-directory: ./android
+        run: |
+          gradle assembleDebug --stacktrace
+          mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/InstaMessages.apk
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: InstaMessages-APK
+          path: android/app/build/outputs/apk/debug/InstaMessages.apk
+
+      - name: Release APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0
+          name: "InstaMessages Android APK v1.0.0"
+          body: |
+            ### ⚡ InstaMessages Android APK
+            
+            Distraction-free Instagram Direct Messages app for Android:
+            - **No Reels, No algorithmic Feed, No Explore recommendations**
+            - **Isolated WebView container** (never redirects into the official Instagram app)
+            - **Direct encrypted connection** to your Instagram DM inbox
+            
+            #### 📲 How to install:
+            1. Download `InstaMessages.apk` below on your Android phone.
+            2. Tap the downloaded file and select **Install**.
+            3. If prompted, allow "Install from unknown sources" for your browser.
+            4. Open InstaMessages and log in!
+          files: android/app/build/outputs/apk/debug/InstaMessages.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

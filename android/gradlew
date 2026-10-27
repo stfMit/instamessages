@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# Setup Gradle wrapper
+exec gradle "$@" 2>/dev/null || {
+  # fallback to wrapper jar if available or gradle
+  echo "Running gradle..."
+  gradle "$@"
+}
