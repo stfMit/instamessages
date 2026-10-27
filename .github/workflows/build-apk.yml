@@ -41,8 +41,8 @@ jobs:
       - name: Release APK
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.1
-          name: "InstaMessages Android APK v1.0.1"
+          tag_name: v1.0.2
+          name: "InstaMessages Android APK v1.0.2"
           body: |
             ### ⚡ InstaMessages Android APK
             

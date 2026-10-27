@@ -60,7 +60,8 @@ public class MainActivity extends Activity {
     private static final String ROUTE_ENFORCER = 
         "setInterval(function() {" +
         "  var p = window.location.pathname;" +
-        "  if (p === '/' || p.startsWith('/reels') || p.startsWith('/explore')) {" +
+        "  /* Redirect home feed, explore tab, and general reels feed */" +
+        "  if (p === '/' || p === '/reels' || p === '/reels/' || p.startsWith('/explore')) {" +
         "    window.location.replace('https://www.instagram.com/direct/inbox/');" +
         "  }" +
         "  /* Remove top-left back button and notes tray */" +
@@ -76,6 +77,53 @@ public class MainActivity extends Activity {
         "    });" +
         "  }" +
         "}, 400);";
+
+    // Single-Reel lock: Allows watching the sent Reel but completely disables vertical scrolling to next reels
+    private static final String REEL_LOCK_SCRIPT = 
+        "(function() {" +
+        "  if (window.__insta_reel_lock_active) return;" +
+        "  window.__insta_reel_lock_active = true;" +
+        "  var startY = 0;" +
+        "  var currentReelId = null;" +
+        "  window.addEventListener('touchstart', function(e) {" +
+        "    if (e.touches && e.touches[0]) startY = e.touches[0].clientY;" +
+        "  }, { capture: true, passive: true });" +
+        "  window.addEventListener('touchmove', function(e) {" +
+        "    var p = window.location.pathname;" +
+        "    if (p.includes('/reel/') || p.includes('/p/')) {" +
+        "      var currentY = e.touches[0].clientY;" +
+        "      /* Block vertical swipe to next reel */" +
+        "      if (Math.abs(currentY - startY) > 6) {" +
+        "        e.preventDefault();" +
+        "        e.stopPropagation();" +
+        "      }" +
+        "    }" +
+        "  }, { capture: true, passive: false });" +
+        "  window.addEventListener('wheel', function(e) {" +
+        "    var p = window.location.pathname;" +
+        "    if (p.includes('/reel/') || p.includes('/p/')) {" +
+        "      e.preventDefault();" +
+        "      e.stopPropagation();" +
+        "    }" +
+        "  }, { capture: true, passive: false });" +
+        "  setInterval(function() {" +
+        "    var p = window.location.pathname;" +
+        "    if (p.includes('/reel/')) {" +
+        "      var segments = p.split('/').filter(Boolean);" +
+        "      var id = segments[1];" +
+        "      if (!currentReelId) {" +
+        "        currentReelId = id;" +
+        "      } else if (id && currentReelId !== id) {" +
+        "        /* User or autoplay tried to advance to next reel - return to chat */" +
+        "        window.history.back();" +
+        "      }" +
+        "      /* Loop the current reel so it never auto-advances to algorithmic feed */" +
+        "      document.querySelectorAll('video').forEach(function(v) { v.loop = true; });" +
+        "    } else if (!p.includes('/p/')) {" +
+        "      currentReelId = null;" +
+        "    }" +
+        "  }, 300);" +
+        "})();";
 
     @Override
     @SuppressLint("SetJavaScriptEnabled")
@@ -124,9 +172,10 @@ public class MainActivity extends Activity {
                 super.onPageFinished(view, url);
                 progressBar.setVisibility(View.GONE);
 
-                // Inject CSS and route enforcement
+                // Inject CSS, route enforcement, and single-reel lock
                 view.evaluateJavascript(CSS_INJECTION, null);
                 view.evaluateJavascript(ROUTE_ENFORCER, null);
+                view.evaluateJavascript(REEL_LOCK_SCRIPT, null);
             }
         });
 
@@ -138,6 +187,7 @@ public class MainActivity extends Activity {
                 } else {
                     progressBar.setVisibility(View.GONE);
                     view.evaluateJavascript(CSS_INJECTION, null);
+                    view.evaluateJavascript(REEL_LOCK_SCRIPT, null);
                 }
             }
 
