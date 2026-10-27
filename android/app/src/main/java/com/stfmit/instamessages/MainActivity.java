@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.ValueCallback;
@@ -21,6 +22,9 @@ public class MainActivity extends Activity {
     private ProgressBar progressBar;
     private ValueCallback<Uri[]> filePathCallback;
     private static final int FILE_CHOOSER_REQUEST_CODE = 1001;
+
+    private float touchDownX = 0f;
+    private float touchDownY = 0f;
 
     // Distraction-free CSS to inject into Instagram Web
     private static final String CSS_INJECTION = 
@@ -47,10 +51,24 @@ public class MainActivity extends Activity {
         "  div[style*=\\\"overflow-x\\\"]," +
         "  div[style*=\\\"scroll-snap-type\\\"]," +
         "  div[role=\\\"menu\\\"]:has(ul)," +
-        "  header div:has(canvas) {" +
+        "  header div:has(canvas)," +
+        "  /* Disable links to user profiles and suggestions inside posts */" +
+        "  article header a[role=\\\"link\\\"]," +
+        "  div[aria-label*=\\\"More posts\\\"]," +
+        "  div[aria-label*=\\\"Suggested\\\"]," +
+        "  button[aria-label*=\\\"Next\\\"] {" +
         "    display: none !important;" +
         "    visibility: hidden !important;" +
         "    pointer-events: none !important;" +
+        "  }" +
+        "  /* Disable vertical scrolling container on reels */" +
+        "  div[style*=\\\"scroll-snap-type: y\\\"]," +
+        "  div[style*=\\\"scroll-snap-type: mandatory\\\"]," +
+        "  section[role=\\\"region\\\"]," +
+        "  div:has(> video) {" +
+        "    touch-action: none !important;" +
+        "    overflow-y: hidden !important;" +
+        "    scroll-snap-type: none !important;" +
         "  }" +
         "`;" +
         "if (!document.getElementById('instamessages-cleaner')) {" +
@@ -60,8 +78,11 @@ public class MainActivity extends Activity {
     private static final String ROUTE_ENFORCER = 
         "setInterval(function() {" +
         "  var p = window.location.pathname;" +
-        "  /* Redirect home feed, explore tab, and general reels feed */" +
-        "  if (p === '/' || p === '/reels' || p === '/reels/' || p.startsWith('/explore')) {" +
+        "  /* Allowed routes: direct messages, accounts, single reel, single post */" +
+        "  var isAllowed = p.startsWith('/direct') || p.startsWith('/accounts') || " +
+        "                  p.startsWith('/challenge') || p.startsWith('/reel/') || p.startsWith('/p/');" +
+        "  if (!isAllowed) {" +
+        "    /* User clicked an external profile, explore, or feed -> immediately return to DM */" +
         "    window.location.replace('https://www.instagram.com/direct/inbox/');" +
         "  }" +
         "  /* Remove top-left back button and notes tray */" +
@@ -76,54 +97,17 @@ public class MainActivity extends Activity {
         "      tray.style.setProperty('display', 'none', 'important');" +
         "    });" +
         "  }" +
-        "}, 400);";
-
-    // Single-Reel lock: Allows watching the sent Reel but completely disables vertical scrolling to next reels
-    private static final String REEL_LOCK_SCRIPT = 
-        "(function() {" +
-        "  if (window.__insta_reel_lock_active) return;" +
-        "  window.__insta_reel_lock_active = true;" +
-        "  var startY = 0;" +
-        "  var currentReelId = null;" +
-        "  window.addEventListener('touchstart', function(e) {" +
-        "    if (e.touches && e.touches[0]) startY = e.touches[0].clientY;" +
-        "  }, { capture: true, passive: true });" +
-        "  window.addEventListener('touchmove', function(e) {" +
-        "    var p = window.location.pathname;" +
-        "    if (p.includes('/reel/') || p.includes('/p/')) {" +
-        "      var currentY = e.touches[0].clientY;" +
-        "      /* Block vertical swipe to next reel */" +
-        "      if (Math.abs(currentY - startY) > 6) {" +
-        "        e.preventDefault();" +
-        "        e.stopPropagation();" +
+        "  /* Inside posts & reels: disable author profile navigation clicks */" +
+        "  if (p.startsWith('/p/') || p.startsWith('/reel/')) {" +
+        "    document.querySelectorAll('article header a, a[role=\"link\"]:not([href*=\"/direct/\"])').forEach(function(link) {" +
+        "      if (!link.href.includes('/direct/') && !link.href.includes('/reel/') && !link.href.includes('/p/')) {" +
+        "        link.style.pointerEvents = 'none';" +
+        "        link.onclick = function(e) { e.preventDefault(); e.stopPropagation(); return false; };" +
         "      }" +
-        "    }" +
-        "  }, { capture: true, passive: false });" +
-        "  window.addEventListener('wheel', function(e) {" +
-        "    var p = window.location.pathname;" +
-        "    if (p.includes('/reel/') || p.includes('/p/')) {" +
-        "      e.preventDefault();" +
-        "      e.stopPropagation();" +
-        "    }" +
-        "  }, { capture: true, passive: false });" +
-        "  setInterval(function() {" +
-        "    var p = window.location.pathname;" +
-        "    if (p.includes('/reel/')) {" +
-        "      var segments = p.split('/').filter(Boolean);" +
-        "      var id = segments[1];" +
-        "      if (!currentReelId) {" +
-        "        currentReelId = id;" +
-        "      } else if (id && currentReelId !== id) {" +
-        "        /* User or autoplay tried to advance to next reel - return to chat */" +
-        "        window.history.back();" +
-        "      }" +
-        "      /* Loop the current reel so it never auto-advances to algorithmic feed */" +
-        "      document.querySelectorAll('video').forEach(function(v) { v.loop = true; });" +
-        "    } else if (!p.includes('/p/')) {" +
-        "      currentReelId = null;" +
-        "    }" +
-        "  }, 300);" +
-        "})();";
+        "    });" +
+        "    document.querySelectorAll('video').forEach(function(v) { v.loop = true; });" +
+        "  }" +
+        "}, 300);";
 
     @Override
     @SuppressLint("SetJavaScriptEnabled")
@@ -156,14 +140,25 @@ public class MainActivity extends Activity {
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri uri = request.getUrl();
                 String host = uri.getHost();
+                String path = uri.getPath() != null ? uri.getPath() : "";
 
-                // Security: Strict host verification (prevent sub-domain spoofing or substring phishing)
+                // Security: Strict host verification
                 boolean isInstagram = host != null && (host.equals("instagram.com") || host.endsWith(".instagram.com"));
                 if (isInstagram) {
-                    return false; // Handled strictly inside this WebView
+                    // 1. Allow DM inbox & chats
+                    if (path.startsWith("/direct") || path.startsWith("/accounts") || path.startsWith("/challenge")) {
+                        return false; // Handled inside WebView
+                    }
+                    // 2. Allow single reel or single post sent by a friend
+                    if (path.startsWith("/reel/") || path.startsWith("/p/")) {
+                        return false; // Handled inside WebView
+                    }
+                    // 3. Block all profile pages, explore, search, hashtags, feeds!
+                    // Clicking on a user profile or explore is blocked:
+                    return true; // Cancel navigation! User cannot browse away!
                 }
 
-                // Security: Enforce http/https schemes for external links before firing intent
+                // External links (e.g. YouTube links sent in chat) open safely in default browser
                 String scheme = uri.getScheme();
                 if ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) {
                     try {
@@ -179,10 +174,9 @@ public class MainActivity extends Activity {
                 super.onPageFinished(view, url);
                 progressBar.setVisibility(View.GONE);
 
-                // Inject CSS, route enforcement, and single-reel lock
+                // Inject CSS and route enforcement
                 view.evaluateJavascript(CSS_INJECTION, null);
                 view.evaluateJavascript(ROUTE_ENFORCER, null);
-                view.evaluateJavascript(REEL_LOCK_SCRIPT, null);
             }
         });
 
@@ -194,7 +188,7 @@ public class MainActivity extends Activity {
                 } else {
                     progressBar.setVisibility(View.GONE);
                     view.evaluateJavascript(CSS_INJECTION, null);
-                    view.evaluateJavascript(REEL_LOCK_SCRIPT, null);
+                    view.evaluateJavascript(ROUTE_ENFORCER, null);
                 }
             }
 
@@ -215,6 +209,36 @@ public class MainActivity extends Activity {
 
         // Load Instagram Direct Messages directly
         webView.loadUrl("https://www.instagram.com/direct/inbox/");
+    }
+
+    /**
+     * Native OS-level touch interception:
+     * When viewing a Reel, any vertical dragging movement is swallowed by Android.
+     * Chromium/Instagram physically CANNOT scroll to the next video!
+     */
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        String url = webView != null ? webView.getUrl() : "";
+        boolean isReelPage = url != null && (url.contains("/reel/") || url.contains("/reels/"));
+
+        if (isReelPage) {
+            switch (ev.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    touchDownX = ev.getX();
+                    touchDownY = ev.getY();
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    float dx = Math.abs(ev.getX() - touchDownX);
+                    float dy = Math.abs(ev.getY() - touchDownY);
+                    // If vertical movement exceeds 10px and is primarily vertical:
+                    // Swallowing it natively prevents Chromium/Android from scrolling to the next video!
+                    if (dy > 10f && dy > dx) {
+                        return true; // Consumed natively! Reels cannot scroll!
+                    }
+                    break;
+            }
+        }
+        return super.dispatchTouchEvent(ev);
     }
 
     @Override
