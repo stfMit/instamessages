@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "InstaDM • Direct Messages Only",
+  "version": "1.0.0",
+  "description": "Distraction-free Instagram: Removes Reels, Feed, Explore and locks directly to Direct Messages inbox.",
+  "icons": {
+    "192": "icons/icon-192.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.instagram.com/*",
+        "https://instagram.com/*"
+      ],
+      "css": ["rules.css"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "action": {
+    "default_title": "InstaDM - Direct Messages Only"
+  }
+}

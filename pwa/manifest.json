@@ -1,0 +1,38 @@
+{
+  "name": "Instagram Direct (DM Only)",
+  "short_name": "InstaDM",
+  "description": "Distraction-free Instagram Direct Messages client without Reels, Feed, or Explore.",
+  "start_url": "/direct/inbox/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "categories": ["social", "communication", "productivity"],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Open Direct Messages",
+      "url": "https://www.instagram.com/direct/inbox/",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

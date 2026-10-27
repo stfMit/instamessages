@@ -1,0 +1,45 @@
+/* ========================================================
+   InstaDM Extension Stylesheet: Hide Reels, Feed, Explore
+   ======================================================== */
+
+/* Hide Reels and Explore buttons in sidebar & navigation */
+a[href*="/reels/"],
+a[href*="/explore/"],
+a[href*="threads.net"],
+div[role="navigation"] a[href="/reels/"],
+div[role="navigation"] a[href="/explore/"],
+div[role="navigation"] a[href="/"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Hide Home icon in Desktop sidebar */
+a[href="/"] span:has(svg[aria-label="Home"]),
+a[href="/"] svg[aria-label="Home"] {
+  display: none !important;
+}
+
+/* Hide stories tray */
+div[role="menu"]:has(ul),
+header div:has(canvas) {
+  display: none !important;
+}
+
+/* Visual indicator */
+#insta-dm-pill {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(18, 18, 18, 0.9);
+  color: #10b981;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  z-index: 9999999;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}

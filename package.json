@@ -1,0 +1,24 @@
+{
+  "name": "instagram-dm-only",
+  "version": "1.0.0",
+  "description": "Distraction-free Instagram Direct Messages app (PWA & Desktop) with Feed & Reels blocked.",
+  "main": "src/desktop/main.js",
+  "scripts": {
+    "start": "electron .",
+    "serve": "npx serve pwa -l 3000",
+    "build:win": "electron-builder --win"
+  },
+  "keywords": [
+    "instagram",
+    "direct-messages",
+    "dm",
+    "pwa",
+    "distraction-free",
+    "electron"
+  ],
+  "author": "Mitelut Stefan",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^33.2.0"
+  }
+}
