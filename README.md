@@ -1,48 +1,25 @@
-# InstaMessages ⚡ Distraction-Free Instagram Direct Messages
+# InstaMessages ⚡ (Android APK)
 
-A dedicated **Android App (`.apk`)**, **Windows Desktop App**, and **Browser Companion** designed specifically for Instagram Direct Messages.
-
-Eliminates algorithmic feeds, the Reels tab, Explore recommendations, and infinite scrolling so you can message friends and clients with zero distractions.
+A native Android app designed specifically for Instagram Direct Messages without algorithmic feeds, Reels doomscrolling, or recommendations.
 
 ---
 
-## 🚀 How to Use InstaMessages
+## 🛡️ Security & Privacy Hardening
 
-### 1. Android Phone (Native APK)
-The Android app runs in an isolated container so Android **cannot** hijack your links into the official Instagram app:
-1. Download **[`InstaMessages.apk`](https://github.com/stfMit/instamessages/releases/download/v1.0.0/InstaMessages.apk)** on your phone.
-2. Tap the file and select **Install**.
-3. Open InstaMessages and enjoy Direct Messages with Reels, Feed, and Explore completely removed!
-
----
-
-### 2. Dedicated Windows Desktop App
-A standalone native desktop window focused strictly on your Direct inbox:
-1. Open this folder in your terminal.
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Run the app:
-   ```bash
-   npm start
-   ```
+- **Isolated WebView Engine**: Uses Android's system Chromium container without middleman servers or proxies.
+- **Strict Host Verification**: Rejects sub-domain spoofing and phishing URL substrings; only true `*.instagram.com` domains are handled internally.
+- **Zero Local File Access**: `allowFileAccess` and `allowContentAccess` are disabled to block local file-system leaks.
+- **Safe Intent Dispatch**: External links sent in messages are strictly validated against `http` and `https` before opening in your default browser.
+- **Single-Reel Lock**: You can watch Reels sent to you in chat, but vertical swipe-up gestures to subsequent algorithmic recommendations are disabled.
+- **End-to-End Privacy**: All logins, 2FA codes, and message sessions are stored in Android's encrypted native `CookieManager`.
 
 ---
 
-### 3. Chrome / Edge / Brave Extension
-Enforces strict "DM-Only Mode" across desktop web browsing:
-1. Open `chrome://extensions` or `edge://extensions` in your browser.
-2. Enable **Developer mode** (toggle in top right).
-3. Click **Load unpacked**.
-4. Select the `extension/` folder from this repository.
+## 📲 How to Install
 
----
-
-## 🛡️ Privacy & Security
-- **Direct Encrypted Connection:** All requests connect directly to `instagram.com`.
-- **Zero Credential Access:** Your login and two-factor authentication remain completely between you and Instagram.
-- **No Third-Party Intermediaries:** No middleman servers or proxies.
+1. Download the latest release: **[`InstaMessages.apk` (v1.0.3)](https://github.com/stfMit/instamessages/releases/download/v1.0.3/InstaMessages.apk)**.
+2. Open the downloaded file on your Android phone and select **Install** / **Update**.
+3. Open InstaMessages and enjoy distraction-free Direct Messages!
 
 ---
 
@@ -51,19 +28,10 @@ Enforces strict "DM-Only Mode" across desktop web browsing:
 ```
 instamessages/
 ├── android/                     # Native Android App source code
-│   ├── app/src/main/            # Android Manifest, WebView, Layouts
-│   ├── build.gradle             # Android build setup
+│   ├── app/src/main/            # Android Manifest, Java logic, and Layouts
+│   ├── build.gradle             # Android build configuration
 │   └── gradlew                  # Gradle build tool
-├── src/desktop/                 # Native Windows Desktop App (Electron)
-│   ├── main.js                  # Main window configuration
-│   ├── preload.js               # Route enforcement & script injection
-│   └── distraction-free.css     # CSS rules hiding Reels, Feed, Explore
-├── extension/                   # Chrome / Edge / Brave Extension
-│   ├── manifest.json            # Manifest V3
-│   ├── rules.css                # Style rules stripping distractions
-│   └── content.js               # Auto-redirect to /direct/inbox/
 ├── .github/workflows/
 │   └── build-apk.yml            # Automated APK compilation workflow
-├── package.json
 └── README.md
 ```

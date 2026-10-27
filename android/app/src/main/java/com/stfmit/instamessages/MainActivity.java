@@ -138,7 +138,9 @@ public class MainActivity extends Activity {
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true);
-        settings.setAllowFileAccess(true);
+        // Security hardening: Disable local file and content scheme access
+        settings.setAllowFileAccess(false);
+        settings.setAllowContentAccess(false);
         settings.setMediaPlaybackRequiresUserGesture(false);
 
         // Mobile Chrome User-Agent
@@ -152,18 +154,23 @@ public class MainActivity extends Activity {
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                String url = request.getUrl().toString();
+                Uri uri = request.getUrl();
+                String host = uri.getHost();
 
-                // Keep all Instagram direct/accounts links inside this WebView
-                if (url.contains("instagram.com")) {
-                    return false; // Handled by this WebView, NEVER opened in native Instagram app!
+                // Security: Strict host verification (prevent sub-domain spoofing or substring phishing)
+                boolean isInstagram = host != null && (host.equals("instagram.com") || host.endsWith(".instagram.com"));
+                if (isInstagram) {
+                    return false; // Handled strictly inside this WebView
                 }
 
-                // External links (e.g. YouTube, links sent by friends in chat) open in device browser
-                try {
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                    startActivity(intent);
-                } catch (Exception ignored) {}
+                // Security: Enforce http/https schemes for external links before firing intent
+                String scheme = uri.getScheme();
+                if ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) {
+                    try {
+                        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                        startActivity(intent);
+                    } catch (Exception ignored) {}
+                }
                 return true;
             }
 
