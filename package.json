@@ -1,7 +1,7 @@
 {
-  "name": "instagram-dm-only",
+  "name": "insta-messages",
   "version": "1.0.0",
-  "description": "Distraction-free Instagram Direct Messages app (PWA & Desktop) with Feed & Reels blocked.",
+  "description": "InstaMessages - Distraction-free Instagram Direct Messages app (PWA & Desktop) with Feed & Reels blocked.",
   "main": "src/desktop/main.js",
   "scripts": {
     "start": "electron .",

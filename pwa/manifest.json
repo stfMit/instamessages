@@ -1,6 +1,6 @@
 {
-  "name": "Instagram Direct (DM Only)",
-  "short_name": "InstaDM",
+  "name": "InstaMessages",
+  "short_name": "InstaMessages",
   "description": "Distraction-free Instagram Direct Messages client without Reels, Feed, or Explore.",
   "start_url": "/direct/inbox/",
   "scope": "/",
